@@ -1,0 +1,12 @@
+# Object files
+*.o
+
+# Auto-dependency lists
+*.d
+
+# No status about vim temporary files
+*.swp
+
+# Python byte code
+*.pyc
+
