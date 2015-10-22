@@ -12,6 +12,7 @@ This linked list library aims to provide the following functionality:
 - [ ] Allow for internal and external data storage,
 - [ ] Search/add/delete by index,
 - [ ] Search/add/delete by data.
+- [ ] Using `const` wherever possible to ensure pointer security.
 
 **Note:** More functionality will be added as the library is developed.
 
@@ -64,6 +65,7 @@ The aims of the project are:
     - [ ] Internal storage.
     - [ ] Search/add/delete by index.
 - [ ] Phase 2:
+    - [ ] Add `const` to pointers to ensure security.
     - [ ] Add doubly linked.
     - [ ] Add double ended.
 - [ ] Phase 3:
