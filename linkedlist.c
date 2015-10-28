@@ -27,16 +27,19 @@ LinkedList* createList(void)
  */
 void deleteList(LinkedList *list)
 {
-    LinkedListNode *current, *next;
-    current = list->head;
-    next = current;
-    while (next)
+    if (list != NULL)
     {
-        next = current->next;
-        free(current);
-        current = next;
+        LinkedListNode *current, *next;
+        current = list->head;
+        next = current;
+        while (next)
+        {
+            next = current->next;
+            free(current);
+            current = next;
+        }
+        free(list);
     }
-    free(list);
 }
 
 
