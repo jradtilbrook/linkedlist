@@ -9,10 +9,13 @@ This linked list library aims to provide the following functionality:
 - [ ] Double ended,
 - [ ] XOR linked (possibly?),
 - [ ] Allow the use of any data type for storage,
-- [ ] Allow for internal and external data storage,
+- [ ] ~~Allow for internal and external data storage,~~
 - [ ] Search/add/delete by index,
-- [ ] Search/add/delete by data.
-- [ ] Using `const` wherever possible to ensure pointer security.
+- [ ] Search/add/delete by element comparison,
+- [ ] Using `const` wherever possible to ensure pointer security,
+- [ ] Adding an array of elements to a list,
+- [ ] Converting a list to an array,
+- [ ] User enabled logging to `stderr` (with colour),
 
 **Note:** More functionality will be added as the library is developed.
 
@@ -68,6 +71,7 @@ The aims of the project are:
     - [ ] Add `const` to pointers to ensure security.
     - [ ] Add doubly linked.
     - [ ] Add double ended.
+    - [ ] Function to add array of elements to list.
 - [ ] Phase 3:
     - [ ] Search/add/delete by data.
     - [ ] Allow any datatype.
