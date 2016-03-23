@@ -59,7 +59,7 @@ LinkedList* createList()
 void deleteList(LinkedList **list, FreeDataFunc freeData)
 {
     /* If list is not NULL or empty */
-    if (*list && (*list)->head)
+    if (list && *list && (*list)->head)
     {
         /* Iterate through list removing the head each time */
         do

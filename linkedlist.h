@@ -97,7 +97,7 @@ typedef struct LinkedList {
  * A @c struct representing an array of the same data stored in a list.
  */
 typedef struct ArrayList {
-    LinkedListData *item; //or element?
+    LinkedListData *item; /* or element? */
     unsigned int length;
 } ArrayList;
 
