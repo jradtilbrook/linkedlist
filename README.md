@@ -7,14 +7,16 @@ This linked list library aims to provide the following functionality:
 - [ ] Single ended,
 - [ ] Doubly linked,
 - [ ] Double ended,
-- [ ] XOR linked (possibly?),
-- [ ] Allow the use of any data type for storage,
-- [ ] Search/add/delete by index,
-- [ ] Search/add/delete by element comparison,
+- [ ] ~~XOR linked (possibly?),~~
+- [x] Allow the use of any data type for storage,
+- [x] Search/add/delete by index,
+- [x] Search/add/delete by element comparison,
 - [ ] Using `const` wherever possible to ensure pointer security,
 - [ ] Adding an array of elements to a list,
 - [ ] Converting a list to an array,
 - [ ] User enabled logging to `stderr` (with colour),
+- [ ] Use multiple returns if it lessens nested `if`'s and makes more readable
+- [ ] Negative indexing
 
 **Note:** More functionality will be added as the library is developed.
 

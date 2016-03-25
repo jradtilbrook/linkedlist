@@ -1,11 +1,10 @@
 /**
- * @file linkedlist.h
- * @author Jarryd Tilbrook
- * @date
- * @brief File containing datatypes and function prototypes for a linked list
- *        library.
- *
- * TODO: add detailed explanation
+ * @file    linkedlist.h
+ * @author  Jarryd Tilbrook
+ * @date    25 Mar 2016
+ * @brief   Linked list library header file. Declares the public functions and
+ *          datatypes accessible to the end user. For a more detailed
+ *          explanation of the library see the README.
  */
 
 
@@ -26,30 +25,29 @@
 #endif
 
 
-
-
 /***** CONDITIONAL COMPILATION *****/
-/* The macros below allow the user to modify the behaviour of the list.
+/* The macros below allow the user to modify the behaviour of the list as
+ * compile time.
  * Uncomment as desired. */
 
 /**
  * This enables the length of the list to be instantly accessible from the list
- * @c struct, as opposed to being calculated by traversing the list.
+ * `struct`, as opposed to being calculated by traversing the list.
  */
 /*#define INSTANT_LENGTH*/
 
 /**
- * This enables a double ended linked list @c struct.
+ * This enables a double ended linked list.
  */
 /*#define DOUBLE_ENDED*/
 
 /**
- * This enables a doubly linked linked list @c struct.
+ * This enables a doubly linked linked list.
  */
 /*#define DOUBLY_LINKED*/
 
 /**
- * This enables logging information to be printed to @c stderr.
+ * This enables logging information to be printed to `stderr`.
  */
 /*#define LOG_ERRORS*/
 
@@ -58,76 +56,99 @@
  * If logging is enabled, this will enable a colourised output.
  */
 /*#define COLOURISE_ERRORS*/
+/* TODO add logging level macro. Or include a switch at run time when constructing the list */
 #endif
-
-
 
 
 /***** DATATYPE DEFINITIONS *****/
 /* This section defines the datatypes used within the list, ranging from the
- * <tt>struct</tt>s to the function callback types. */
+ * `struct`s to the function callback types. */
 
 /**
- * The datatype stored in the linked list. Change to whatever the application
- * calls for.
- * <b>Note:</b> The current implementation will not allow for simultaneous lists
- * that store different datatypes.
+ * The datatype stored in the linked list. `void` pointer is used to allow for
+ * any type to be stored in the list.
  */
-typedef char LinkedListData;
-
-
-/**
- * A @c struct representing a node within the list.
- */
-typedef struct LinkedListNode {
-    LinkedListData *data;
-    struct LinkedListNode *next;
-} LinkedListNode;
-
-
-/**
- * A @c struct representing a list.
- */
-typedef struct LinkedList {
-    LinkedListNode *head;
-} LinkedList;
-
-
-/**
- * A @c struct representing an array of the same data stored in a list.
- */
-typedef struct ArrayList {
-    LinkedListData *item; /* or element? */
-    unsigned int length;
-} ArrayList;
+typedef void* LinkedListData;
 
 
 /**
  * @brief A function pointer type that takes a pointer to the type stored in the
- * 		  list.
+ * 		  list and frees the memory pointed to.
  *
  * The user can define a function of this type that is used to free non-standard
  * data when deleting an element or the entire list. eg: freeing the contents of
- * a dynamically allocated struct.
+ * a dynamically allocated `struct`.
  */
-typedef void (* FreeDataFunc)(LinkedListData *);
+typedef void (* FreeDataFunc)(LinkedListData);
 
 
 /**
  * @brief A function pointer type that takes two values of the type stored in
- *        the list.
+ *        the list and compares them for equality.
  *
  * The user can define a function of this type that is used to compare two
  * elements from a list that cannot be used in a boolean expression directly.
- * The defined function should return TRUE if the two elements are deemed
- * equivalent.
+ * The defined function should return 0 for equal comparison, < 0 if the first
+ * argument is less than the second, and > 0 if the first is larger than the
+ * second.
  */
-typedef int (* CompareFunc)(LinkedListData, LinkedListData);
+typedef int (* DifferenceFunc)(LinkedListData, LinkedListData);
 
 
+/**
+ * @brief A function pointer type that takes a pointer to an item to store in
+ *        the list, allocates memory for it, and copies the item across.
+ *
+ * The user may define a function of this type that will be used to allocate and
+ * copy an item into the list. Helps to enforce better modularisation of code.
+ * The function should return a pointer to the newly allocated memory, or `NULL`
+ * on error.
+ */
+typedef LinkedListData (* AllocFunc)(LinkedListData);
 
 
-/***** INSERTION & CREATION FUNCTIONS *****/
+/**
+ * A `struct` representing a node within the list.
+ */
+typedef struct LinkedListNode {
+    LinkedListData data;
+    struct LinkedListNode *next;
+    #ifdef DOUBLY_LINKED
+        struct LinkedListNode *prev;
+    #endif
+} LinkedListNode;
+
+
+/**
+ * A `struct` representing an array of the same data stored in a list.
+ */
+typedef struct ArrayList {
+    LinkedListData element;
+    unsigned long length;
+} ArrayList;
+
+
+/**
+ * A `struct` representing a linked list instance. Contains a pointer to the
+ * head and pointers to user defined functions used to compare, delete and
+ * allocate items within the list. Also optionally contains a pointer to the
+ * tail of the list, and the length of the list.
+ */
+typedef struct LinkedList {
+    LinkedListNode *head;
+    #ifdef DOUBLE_ENDED
+        LinkedListNode *tail;
+    #endif
+    #ifdef INSTANT_LENGTH
+        unsigned long length;
+    #endif
+    DifferenceFunc diff;
+    FreeDataFunc free;
+    AllocFunc alloc;
+} LinkedList;
+
+
+/***** INSERTION & MODIFICATION FUNCTIONS *****/
 /* The functions below provide methods of creating a new list and inserting
  * elements at specific positions. A converter function is also provided that
  * performs linked list to array conversion to decrease access times. */
@@ -135,71 +156,101 @@ typedef int (* CompareFunc)(LinkedListData, LinkedListData);
 /**
  * @brief Create a new empty linked list.
  *
- * Allocates memory for the list and initilise the structures fields. If an
- * allocation error occurs an error is logged to @c stderr (if enabled during
- * compilation).
+ * Allocates memory for the list and initilises the `struct`s fields. Returns
+ * `NULL` if an error occurs in memory allocation.
  *
- * @return A pointer to a new empty linked list or @c NULL on error.
+ * @return A pointer to a new empty linked list or `NULL` on error.
  */
-LinkedList* createList();
+LinkedList* createList(FreeDataFunc free, DifferenceFunc diff);
 
 
 /**
  * @brief Convert a linked list into an array.
  *
- * Creates an array from the elements stored in @p list to reduce access times.
- * It leaves the ordering of contents as is (ie. head is first element in the
- * array). The nodes within @p list and the @p list itself are freed. If an
- * allocation error occurs, the list is left unmodified and @c NULL is returned.
+ * Creates an array from the elements stored in @p list to help reduce element
+ * access times. The exported array can also be in sorted order by passing a
+ * positive value to @p sort. Otherwise, tt leaves the ordering of contents as
+ * is. The nodes within @p list and the @p list itself is freed. If an error
+ * occurs, the list is left unmodified and `NULL` is returned.
  *
  * @param list The list to convert, containing the data to include in the
  *             array.
- * @return A pointer to a new @c ArrayList structure containing the elements and
+ * @return A pointer to a new `ArrayList` structure containing the elements and
  *         the length.
+ * TODO: this needs more thinking/designing... ie single 'chunk' of memory, how to allocate -> lists alloc func won't work, array of pointers to list elements?
  */
-ArrayList* list2Array(LinkedList **list);
+ArrayList* list2Array(LinkedList *list, int sort);
 
 
 /**
- * @brief Insert @p value at the head of @p list.
+ * @brief Insert a value at the top of a list.
  *
- * Allocates a new node in @p list and copies in @p value. If enabled, memory is
- * alocated first before copying the data in.
+ * If the list is configured to use an external allocating function, that will
+ * be used, and the pointer returned will be stored in the list, otherwise it
+ * will assume the data passed in is pre-allocated.
  *
  * @param list The list to add to.
  * @param value The data to copy into the list.
- * @return Positive integer if no error occured and the list has been modified.
+ * @return Positive integer for successful insertion, zero otherwise.
  */
 int insertTop(LinkedList *list, LinkedListData value);
 
 
 /**
- * @brief Insert @p value at the end of @p list.
+ * @brief Insert a value at the end of a list.
  *
- * Allocates a new node in @p list and copies in @p value. If enabled, memory is
- * alocated first before copying the data in.
+ * Similar to insertTop(), but will add the element to the end of @p list.
  *
  * @param list The list to add to.
- * @param value The data to copy into the list.
- * @return Positive integer if no error occured and the list has been modified.
+ * @param value The data to insert into the list.
+ * @return Positive integer for successful insertion, zero otherwise.
  */
 int insertTail(LinkedList *list, LinkedListData value);
 
 
 /**
- * @brief Insert @p value into @p list at @p index.
+ * @brief Insert a value into a list at a given index.
  *
- * Allocates a new node in @p list and copies in @p value. If enabled, memory is
- * alocated first before copying the data in.
+ * If configured, the user defined allocation function will be used to allocate
+ * memory for @p value and add it to the list, otherwise it is assumed that
+ * @p value is pre-allocated. After excecution, @p value will be at @p index
+ * within the list. Note that negative indexing is supported.
  *
  * @param list The list to add to.
- * @param value The data to copy into the list.
+ * @param value The data to insert into the list.
  * @param index The index to insert at (starting at 0).
- * @return Positive integer if no error occured and the list has been modified.
+ * @return Positive integer for successful insertion, zero otherwise. (eg.
+ *         index out of bounds)
  */
-int insertIndex(LinkedList *list, LinkedListData value, unsigned int index);
+int insertIndex(LinkedList *list, LinkedListData value, long index);
 
 
+/**
+ * @brief Insert a value in sorted order into the list.
+ *
+ * Using the defined difference function field in @p list, inserts @p value in
+ * sorted order into the list. If the field is `NULL`, @p value will be inserted
+ * at the top of the list and a negative integer returned.
+ *
+ * @param  list  The list to add to.
+ * @param  value The data to insert into the list.
+ * @return Positive integer for successful insertion, negative if no sort
+ *         function was used, and zero otherwise.
+ */
+int insertSorted(LinkedList *list, LinkedListData value);
+
+
+/**
+ * @brief Sorts a list inplace using a difference function.
+ *
+ * Sorts @p list inplace using either the defined difference function field in
+ * @p list, or another difference function passed in to @p compare. Use this
+ * parameter to override the existing difference function.
+ *
+ * @param  list    The list to sort.
+ * @param  diff The overriding compare function to use to determine ordering.
+ */
+void sortList(LinkedList *list, DifferenceFunc diff);
 
 
 /***** REMOVAL & DELETION FUNCTIONS *****/
@@ -207,89 +258,83 @@ int insertIndex(LinkedList *list, LinkedListData value, unsigned int index);
  * an entire list itself. */
 
 /**
- * @brief Delete the list pointed to by @p list.
+ * @brief Delete an entire list.
  *
- * If not @c NULL the data stored in @p list is passed to the user defined
- * callback @p freeData for freeing (assuming the data is a @c struct or similar
- * with dynamically allocated contents). Each node in @p list and @p list itself
- * is freed and @p list is set to @c NULL. Pass @c NULL to @p freeData if the
- * data is a simple type, and it will be freed internally.
+ * Frees the entire contents of the linked list @p list. Delegates to the `free`
+ * field of @p list for deallocation, or if this is `NULL` frees each node
+ * internally, followed by the list itself.
  *
  * @param list The list to delete.
- * @param freeData The user defined callback to free the data stored in the
- *                 list.
- *
- * TODO: use double pointer to allow setting to NULL from inside?
- * TODO: decide whether to use conditional compilation for function footprint
  */
-void deleteList(LinkedList **list, FreeDataFunc freeData);
+void destroyList(LinkedList *list);
 
 
 /**
- * @brief Delete the array pointed to by @p array.
+ * @brief Delete an array converted from a list.
  *
- * If not @c NULL the data stored in @p array is passed to the user defined
- * callback @p freeData for freeing (assuming the data is a @c struct or similar
- * with dynamically allocated contents). @p array itself is then freed and set
- * to @c NULL. Pass @c NULL to @p freeData if the data is a simple type, and it
- * will be freed internally.
+ * Frees the contents of @p array. Delegates freeing to @p freeData to ensure
+ * `structs` are properly deallocated. If @p freeData is `NULL` it is freed
+ * internally.
  *
  * @param array The array to delete.
  * @param freeData The user defined callback to free the data stored in the
  *                 list.
- * @return Positive integer if no error occured and the list has been modified.
- *
- * TODO: use double pointer to allow setting to NULL from inside?
  */
-int deleteArray(ArrayList **array, FreeDataFunc freeData);
+int destroyArray(ArrayList *array, FreeDataFunc freeData);
 
 
 /**
- * @brief Delete the element at the start of @p list.
+ * @brief Delete the element at the start of a list.
  *
- * If it exists, the top element in @p list is removed. If required, the user
- * can specifiy a callback to free the data stored in the list, otherwise pass
- * @c NULL to @p freeData and it is freed internally.
+ * If it exists, the top element in @p list is removed. Delegates to the `free`
+ * field of @p list to ensure all contents of the node are freed. If this field
+ * is `NULL` it is freed internally.
  *
  * @param list The list to remove from.
- * @param freeData The user defined callback to free the data stored in the
- *                 list.
  */
-void removeTop(LinkedList *list, FreeDataFunc freeData);
+void removeTop(LinkedList *list);
 
 
 /**
- * Remove the last element.
- */
-/**
- * @brief Delete the element at the end of @p list.
+ * @brief Delete the element at the end of a list.
  *
- * If it exists, the tail element in @p list is removed. If required, the user
- * can specifiy a callback to free the data stored in the list, otherwise pass
- * @c NULL to @p freeData and it is freed internally.
+ * If it exists, the last element in @p list is removed. Delegates to the `free`
+ * field of @p list to ensure all contents of the node are freed. If this field
  *
  * @param list The list to remove from.
- * @param freeData The user defined callback to free the data stored in the
- *                 list.
- * @return Positive integer if no error occured and the list has been modified.
  */
-int removeTail(LinkedList *list, FreeDataFunc freeData);
+void removeTail(LinkedList *list);
 
 
 /**
- * Remove an element at the specified index.
- */
-/**
- * @brief Delete the element at @p index within @p list.
+ * @brief Delete the element at a given index within a list.
+ *
+ * If it exists, the element at @p index is removed from the list. Delegates to
+ * the `free` field of @p list to ensure all contents of the node are freed. If
+ * this field. Negative indexing is supported.
+ *
  * @param list The list to remove from.
  * @param index The index to remove (starting from 0).
- * @param freeData The user defined callback to free the data stored in the
- *                 list.
- * @return Positive integer if no error occured and the list has been modified.
+ * @return Positive integer for successful removal, zero otherwise.
  */
-int removeIndex(LinkedList *list, unsigned int index, FreeDataFunc freeData);
+int removeIndex(LinkedList *list, long index);
 
 
+/**
+ * @brief Remove a node that matches a specified value.
+ *
+ * Use this to remove an element from @p list that matches @p value. This
+ * delegates the comparison to @p diff, or if `NULL` defaults to the difference
+ * function pointer stored in @p list. Use this to override the comparison (eg.
+ * to loosen the constraints).
+ *
+ * @param  list    The list to remove from.
+ * @param  element The compared element to find and remove.
+ * @param  compare The overriding comparison function to use.
+ * @return Positive integer for successful removal, zero otherwise.
+ */
+int removeElement(LinkedList *list, LinkedListData value,
+        DifferenceFunc diff);
 
 
 /***** FINDING & SEARCHING FUNCTIONS *****/
@@ -298,61 +343,65 @@ int removeIndex(LinkedList *list, unsigned int index, FreeDataFunc freeData);
  * element is present and retrieving a specific element. */
 
 /**
- * @brief Calculate the length of @p list.
+ * @brief Calculate the length of a list.
  *
- * If it has been enabled this may merely return the size field of the list.
+ * If it has been enabled this may merely return the length field of @p list.
  * Otherwise the list is traversed to calculate the length.
  *
  * @param list The list to determine the length of.
- * @return The size of the supplied list, or -1 on error.
+ * @return The size of the supplied list.
  */
-long listLength(LinkedList *list);
+unsigned long listLength(LinkedList *list);
 
 
 /**
- * @brief Find whether @p needle is present in @p list.
+ * @brief Find whether an element exists in the list.
  *
  * This function traverses @p list checking whether at least one element is
- * present that is equivalent to @p needle. If the datatype stored in the list
- * is invalid for boolean operations the user must specify a callback which will
- * be passed @p needle, and each element in @p list, and return @c TRUE if They
- * are deemed equivalent. Pass @c NULL to @p compare if this is not required
- * and the data will be checked internally.
+ * present that is equivalent to @p needle. This delegates the comparison to
+ * @p diff or the difference function supplied in @p list if `NULL`. @p diff
+ * therefore overrides it's counterpart in @p list. This is useful to loosen the
+ * comparing constraints on the list elements compared to that used for
+ * inserting. Returns a pointer to the first found element or `NULL` if one is
+ * not found.
  *
  * @param list The list to search through.
  * @param needle The element to search for.
- * @param compare The user defined callback to test for equality.
- * @return @c TRUE if at least one equal element was found.
- * TODO: return index of element (or -1), or return pointer to it (or NULL)
+ * @param diff Overriding comparison function to use.
+ * @return A pointer to the found element, or `NULL` if not found.
  */
-int findElement(LinkedList *list, LinkedListData needle, CompareFunc compare);
+LinkedListData findElement(LinkedList *list, LinkedListData needle,
+        DifferenceFunc diff);
 
 
 /**
- * @brief Retrieves, but does not remove, the element at the start of @p list.
+ * @brief Retrieves, but does not remove, the element at the start of a list.
  *
  * @param list The list to retrieve from.
- * @return A pointer to the first element, or @c NULL if empty.
+ * @return A pointer to the first element, or `NULL` if empty.
  */
-LinkedListData * peekTop(LinkedList *list);
+LinkedListData peekTop(LinkedList *list);
 
 
 /**
- * @brief Retrieves, but does not remove, the element at the end of @p list.
+ * @brief Retrieves, but does not remove, the element at the end of a list.
  *
  * @param list The list to retrieve from.
- * @return A pointer to the last element, or @c NULL if empty.
+ * @return A pointer to the last element, or `NULL` if empty.
  */
-LinkedListData * peekTail(LinkedList *list);
+LinkedListData peekTail(LinkedList *list);
 
 
 /**
- * @brief Retrieves, but does not remove, the element at @p index of @p list.
+ * @brief Retrieves, but does not remove, the element at a given index of a
+ *        list.
+ *
+ * Negative indexing is supported.
  *
  * @param list The list to retrieve from.
- * @return A pointer to the element, or @c NULL if out of bounds.
+ * @return A pointer to the element, or `NULL` if out of bounds.
  */
-LinkedListData * peekIndex(LinkedList *list, unsigned int index);
+LinkedListData peekIndex(LinkedList *list, long index);
 
 
  #endif /* end of include guard: LINKEDLIST_H */
