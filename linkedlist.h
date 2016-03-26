@@ -35,16 +35,24 @@
  * `struct`, as opposed to being calculated by traversing the list.
  */
 /*#define INSTANT_LENGTH*/
-
+#ifdef INSTANT_LENGTH
+    #error "Instant length not yet supported"
+#endif
 /**
  * This enables a double ended linked list.
  */
 /*#define DOUBLE_ENDED*/
+#ifdef DOUBLE_ENDED
+    #error "Double ended not yet supported"
+#endif
 
 /**
  * This enables a doubly linked linked list.
  */
 /*#define DOUBLY_LINKED*/
+#ifdef DOUBLY_LINKED
+    #error "Doubly linked not yet supported"
+#endif
 
 /**
  * This enables logging information to be printed to `stderr`.
@@ -103,6 +111,8 @@ typedef int (* DifferenceFunc)(LinkedListData, LinkedListData);
  * copy an item into the list. Helps to enforce better modularisation of code.
  * The function should return a pointer to the newly allocated memory, or `NULL`
  * on error.
+ *
+ * @deprecated
  */
 typedef LinkedListData (* AllocFunc)(LinkedListData);
 
@@ -144,7 +154,6 @@ typedef struct LinkedList {
     #endif
     DifferenceFunc diff;
     FreeDataFunc free;
-    AllocFunc alloc;
 } LinkedList;
 
 
@@ -185,9 +194,8 @@ ArrayList* list2Array(LinkedList *list, int sort);
 /**
  * @brief Insert a value at the top of a list.
  *
- * If the list is configured to use an external allocating function, that will
- * be used, and the pointer returned will be stored in the list, otherwise it
- * will assume the data passed in is pre-allocated.
+ * This expects @p value to be a valid pre-allocated pointer as no checks are
+ * performed. This @p value is inserted at the head of the list.
  *
  * @param list The list to add to.
  * @param value The data to copy into the list.
@@ -211,10 +219,9 @@ int insertTail(LinkedList *list, LinkedListData value);
 /**
  * @brief Insert a value into a list at a given index.
  *
- * If configured, the user defined allocation function will be used to allocate
- * memory for @p value and add it to the list, otherwise it is assumed that
- * @p value is pre-allocated. After excecution, @p value will be at @p index
- * within the list. Note that negative indexing is supported.
+ * This expects @p value to be a valid pre-allocated pointer as no checks are
+ * performed. After excecution, @p value will be at @p index within the list.
+ * Note that negative indexing is supported.
  *
  * @param list The list to add to.
  * @param value The data to insert into the list.
@@ -258,14 +265,13 @@ void sortList(LinkedList *list, DifferenceFunc diff);
  * an entire list itself. */
 
 /**
- * @brief Delete an entire list.
- *
- * Frees the entire contents of the linked list @p list. Delegates to the `free`
- * field of @p list for deallocation, or if this is `NULL` frees each node
- * internally, followed by the list itself.
- *
- * @param list The list to delete.
- */
+* @brief Delete an entire list.
+*
+* Frees the entire contents of the linked list @p list by recursively removing
+* the top node.
+*
+* @param list The list to delete.
+*/
 void destroyList(LinkedList *list);
 
 
@@ -286,9 +292,12 @@ int destroyArray(ArrayList *array, FreeDataFunc freeData);
 /**
  * @brief Delete the element at the start of a list.
  *
- * If it exists, the top element in @p list is removed. Delegates to the `free`
- * field of @p list to ensure all contents of the node are freed. If this field
- * is `NULL` it is freed internally.
+ * If it exists, the top element in @p list is removed. This delegates to the
+ * function pointer field, `free`, stored in @p list to do the deallocation. If
+ * this field is `NULL` the standard implementation of `free()` will be used. If
+ * you wish to perform extra checks or if the data stored in the list requires
+ * more than a single call to `free()`, ensure that you define an appropriate
+ * function.
  *
  * @param list The list to remove from.
  */

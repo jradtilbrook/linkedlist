@@ -20,6 +20,9 @@ This linked list library aims to provide the following functionality:
 
 **Note:** More functionality will be added as the library is developed.
 
+## Dependencies
+Uses `check` for unit testing.
+
 ## To-Do List
 - [ ] Continuously update README to document functionality.
 - [ ] Phase 1:
