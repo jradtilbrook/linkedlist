@@ -21,7 +21,9 @@ This linked list library aims to provide the following functionality:
 **Note:** More functionality will be added as the library is developed.
 
 ## Dependencies
-Uses `check` for unit testing.
+Uses `check` for unit testing. This can be installed from the official Ubuntu
+repositories. Check out the [documentation](http://libcheck.github.io/check/)
+for more details.
 
 ## To-Do List
 - [ ] Continuously update README to document functionality.
