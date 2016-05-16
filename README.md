@@ -1,5 +1,5 @@
 # Linked List
-A linked list library written in `C` adhering to C89.
+A linked list library written in `C` adhering to C89. This library prioritises readability over efficiency and aims to be as easy to use and as transparent as possible.
 
 ## Functionality
 This linked list library aims to provide the following functionality:
@@ -27,6 +27,7 @@ for more details.
 
 ## To-Do List
 - [ ] Continuously update README to document functionality.
+- [ ] Build documentation (with doxygen?) and host on github (gh-pages branch)
 - [ ] Phase 1:
     - [ ] Singly linked.
     - [ ] Single ended.
