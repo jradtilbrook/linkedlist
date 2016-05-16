@@ -153,3 +153,68 @@ void removeTop(LinkedList *list)
     }
 #endif
 }
+
+
+/**
+ * @brief Calculate the length of a list.
+ *
+ * If it has been enabled this may merely return the length field of @p list.
+ * Otherwise the list is traversed to calculate the length.
+ *
+ * @param list The list to determine the length of.
+ * @return The size of the supplied list.
+ */
+unsigned long listLength(LinkedList *list)
+{
+    if(list && list->head)
+    {
+        unsigned long length = 1;
+
+        LinkedListNode *n = list->head;
+        while (n->next)
+        {
+            n = n->next;
+            length++;
+        }
+
+        return length;
+    }
+    else
+        return 0;
+}
+
+
+/**
+ * @brief Retrieves, but does not remove, the element at the start of a list.
+ *
+ * @param list The list to retrieve from.
+ * @return A pointer to the first element, or `NULL` if empty.
+ */
+LinkedListData peekTop(LinkedList *list)
+{
+    if(list)
+        return list->head;
+
+    return NULL;
+}
+
+
+/**
+ * @brief Retrieves, but does not remove, the element at the end of a list.
+ *
+ * @param list The list to retrieve from.
+ * @return A pointer to the last element, or `NULL` if empty.
+ */
+LinkedListData peekTail(LinkedList *list)
+{
+    if(list)
+    {
+        LinkedListNode *current = list->head;
+        /* iterate through to the end */
+        while(current && current->next)
+            current = current->next;
+        return current;
+    }
+
+    return NULL;
+}
