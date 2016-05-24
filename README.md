@@ -1,4 +1,4 @@
-# Linked List
+# Linked List [![Build Status](https://travis-ci.org/jradtilbrook/linkedlist.svg?branch=master)](https://travis-ci.org/jradtilbrook/linkedlist)
 A linked list library written in `C` adhering to C89. This library prioritises readability over efficiency and aims to be as easy to use and as transparent as possible.
 
 ## Functionality
