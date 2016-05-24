@@ -1,10 +1,8 @@
 /**
  * @file    linkedlist.h
  * @author  Jarryd Tilbrook
- * @date    25 Mar 2016
- * @brief   Linked list library header file. Declares the public functions and
- *          datatypes accessible to the end user. For a more detailed
- *          explanation of the library see the README.
+ * @date    24 May 2016
+ * @brief   TODO add description
  */
 
 
@@ -13,8 +11,13 @@
 
 
 #include <stdlib.h>
-#include <stdio.h>
-
+/* Conditional includes for unit testing the library */
+#ifdef UNIT_TESTING
+    #include <stdarg.h>
+    #include <stddef.h>
+    #include <setjmp.h>
+    #include <cmocka.h>
+#endif
 
 /* TRUE/FALSE values for C89 */
 #ifndef FALSE
@@ -35,37 +38,38 @@
  * `struct`, as opposed to being calculated by traversing the list.
  */
 /*#define INSTANT_LENGTH*/
-#ifdef INSTANT_LENGTH
+/*#ifdef INSTANT_LENGTH
     #error "Instant length not yet supported"
-#endif
+#endif*/
+
 /**
  * This enables a double ended linked list.
  */
 /*#define DOUBLE_ENDED*/
-#ifdef DOUBLE_ENDED
+/*#ifdef DOUBLE_ENDED
     #error "Double ended not yet supported"
-#endif
+#endif*/
 
 /**
  * This enables a doubly linked linked list.
  */
 /*#define DOUBLY_LINKED*/
-#ifdef DOUBLY_LINKED
+/*#ifdef DOUBLY_LINKED
     #error "Doubly linked not yet supported"
-#endif
+#endif*/
 
 /**
  * This enables logging information to be printed to `stderr`.
  */
 /*#define LOG_ERRORS*/
 
-#ifdef LOG_ERRORS
+/*#ifdef LOG_ERRORS*/
 /**
  * If logging is enabled, this will enable a colourised output.
  */
 /*#define COLOURISE_ERRORS*/
 /* TODO add logging level macro. Or include a switch at run time when constructing the list */
-#endif
+/*#endif*/
 
 
 /***** DATATYPE DEFINITIONS *****/
@@ -73,10 +77,9 @@
  * `struct`s to the function callback types. */
 
 /**
- * The datatype stored in the linked list. `void` pointer is used to allow for
- * any type to be stored in the list.
+ * A pointer to any kind of data suitable for storage in the linked list.
  */
-typedef void* LinkedListData;
+typedef void* DataPointer;
 
 
 /**
@@ -87,7 +90,7 @@ typedef void* LinkedListData;
  * data when deleting an element or the entire list. eg: freeing the contents of
  * a dynamically allocated `struct`.
  */
-typedef void (* FreeDataFunc)(LinkedListData);
+/*typedef void (* FreeDataFunc)(LinkedListData);*/
 
 
 /**
@@ -100,7 +103,7 @@ typedef void (* FreeDataFunc)(LinkedListData);
  * argument is less than the second, and > 0 if the first is larger than the
  * second.
  */
-typedef int (* DifferenceFunc)(LinkedListData, LinkedListData);
+/*typedef int (* DifferenceFunc)(LinkedListData, LinkedListData);*/
 
 
 /**
@@ -114,46 +117,32 @@ typedef int (* DifferenceFunc)(LinkedListData, LinkedListData);
  *
  * @deprecated
  */
-typedef LinkedListData (* AllocFunc)(LinkedListData);
+/*typedef LinkedListData (* AllocFunc)(LinkedListData);*/
 
 
 /**
- * A `struct` representing a node within the list.
+ * A `struct` representing a node within a linked list.
  */
-typedef struct LinkedListNode {
-    LinkedListData data;
-    struct LinkedListNode *next;
-    #ifdef DOUBLY_LINKED
-        struct LinkedListNode *prev;
-    #endif
-} LinkedListNode;
+typedef struct ListNode {
+    DataPointer data;
+    struct ListNode *next;
+} ListNode;
 
 
 /**
  * A `struct` representing an array of the same data stored in a list.
  */
-typedef struct ArrayList {
-    LinkedListData element;
+/*typedef struct ArrayList {
+    DataPointer element;
     unsigned long length;
-} ArrayList;
+} ArrayList;*/
 
 
 /**
- * A `struct` representing a linked list instance. Contains a pointer to the
- * head and pointers to user defined functions used to compare, delete and
- * allocate items within the list. Also optionally contains a pointer to the
- * tail of the list, and the length of the list.
+ * A `struct` representing a single linked list.
  */
 typedef struct LinkedList {
-    LinkedListNode *head;
-    #ifdef DOUBLE_ENDED
-        LinkedListNode *tail;
-    #endif
-    #ifdef INSTANT_LENGTH
-        unsigned long length;
-    #endif
-    DifferenceFunc diff;
-    FreeDataFunc free;
+    ListNode *head;
 } LinkedList;
 
 
@@ -165,55 +154,58 @@ typedef struct LinkedList {
 /**
  * @brief Create a new empty linked list.
  *
- * Allocates memory for the list and initilises the `struct`s fields. Returns
- * `NULL` if an error occurs in memory allocation.
+ * Allocates and initilises a new linked list.
  *
  * @return A pointer to a new empty linked list or `NULL` on error.
  */
-LinkedList* createList(FreeDataFunc free, DifferenceFunc diff);
+LinkedList* createList();
 
 
 /**
  * @brief Convert a linked list into an array.
  *
- * Creates an array from the elements stored in @p list to help reduce element
- * access times. The exported array can also be in sorted order by passing a
- * positive value to @p sort. Otherwise, tt leaves the ordering of contents as
- * is. The nodes within @p list and the @p list itself is freed. If an error
- * occurs, the list is left unmodified and `NULL` is returned.
+ * Creates an array from the elements stored in @p list. This is a convenience
+ * function provided to help reduce element access times. The ordering of @p
+ * list remains consistent. The memory associated with @p list will be freed. If
+ * an error occurs, the list is left unmodified and `NULL` is returned,
+ * otherwise an `ArrayList` is returned containing a pointer to the contiguous
+ * data and it's length.
+ *
+ * TODO: export in sorted order
+ * TODO: this needs more thinking/designing... ie single 'chunk' of memory, how to allocate -> lists alloc func won't work, array of pointers to list elements?
  *
  * @param list The list to convert, containing the data to include in the
  *             array.
  * @return A pointer to a new `ArrayList` structure containing the elements and
  *         the length.
- * TODO: this needs more thinking/designing... ie single 'chunk' of memory, how to allocate -> lists alloc func won't work, array of pointers to list elements?
  */
-ArrayList* list2Array(LinkedList *list, int sort);
+/*ArrayList* list2Array(LinkedList *list);*/
 
 
 /**
- * @brief Insert a value at the top of a list.
+ * @brief Insert an element at the top of a list.
  *
  * This expects @p value to be a valid pre-allocated pointer as no checks are
  * performed. This @p value is inserted at the head of the list.
+ * TODO: return new head?
  *
  * @param list The list to add to.
- * @param value The data to copy into the list.
+ * @param data The data to copy into the list.
  * @return Positive integer for successful insertion, zero otherwise.
  */
-int insertTop(LinkedList *list, LinkedListData value);
+int insertTop(LinkedList *list, DataPointer data);
 
 
 /**
- * @brief Insert a value at the end of a list.
+ * @brief Insert an element at the end of a list.
  *
  * Similar to insertTop(), but will add the element to the end of @p list.
  *
  * @param list The list to add to.
- * @param value The data to insert into the list.
+ * @param data The data to insert into the list.
  * @return Positive integer for successful insertion, zero otherwise.
  */
-int insertTail(LinkedList *list, LinkedListData value);
+int insertTail(LinkedList *list, DataPointer data);
 
 
 /**
@@ -229,7 +221,7 @@ int insertTail(LinkedList *list, LinkedListData value);
  * @return Positive integer for successful insertion, zero otherwise. (eg.
  *         index out of bounds)
  */
-int insertIndex(LinkedList *list, LinkedListData value, long index);
+/*int insertIndex(LinkedList *list, LinkedListData value, long index);*/
 
 
 /**
@@ -244,7 +236,7 @@ int insertIndex(LinkedList *list, LinkedListData value, long index);
  * @return Positive integer for successful insertion, negative if no sort
  *         function was used, and zero otherwise.
  */
-int insertSorted(LinkedList *list, LinkedListData value);
+/*int insertSorted(LinkedList *list, LinkedListData value);*/
 
 
 /**
@@ -257,7 +249,7 @@ int insertSorted(LinkedList *list, LinkedListData value);
  * @param  list    The list to sort.
  * @param  diff The overriding compare function to use to determine ordering.
  */
-void sortList(LinkedList *list, DifferenceFunc diff);
+/*void sortList(LinkedList *list, DifferenceFunc diff);*/
 
 
 /***** REMOVAL & DELETION FUNCTIONS *****/
@@ -267,8 +259,8 @@ void sortList(LinkedList *list, DifferenceFunc diff);
 /**
 * @brief Delete an entire list.
 *
-* Frees the entire contents of the linked list @p list by recursively removing
-* the top node.
+* Frees all the memory associated with @p list. This includes every node and
+* each node's associated data.
 *
 * @param list The list to delete.
 */
@@ -286,18 +278,14 @@ void destroyList(LinkedList *list);
  * @param freeData The user defined callback to free the data stored in the
  *                 list.
  */
-int destroyArray(ArrayList *array, FreeDataFunc freeData);
+/*int destroyArray(ArrayList *array, FreeDataFunc freeData);*/
 
 
 /**
- * @brief Delete the element at the start of a list.
+ * @brief Delete the element at the top of a list.
  *
- * If it exists, the top element in @p list is removed. This delegates to the
- * function pointer field, `free`, stored in @p list to do the deallocation. If
- * this field is `NULL` the standard implementation of `free()` will be used. If
- * you wish to perform extra checks or if the data stored in the list requires
- * more than a single call to `free()`, ensure that you define an appropriate
- * function.
+ * If it exists, the top element in @p list is removed. This function will also
+ * call the standard implementation of `free()` on the data within the the node.
  *
  * @param list The list to remove from.
  */
@@ -307,8 +295,8 @@ void removeTop(LinkedList *list);
 /**
  * @brief Delete the element at the end of a list.
  *
- * If it exists, the last element in @p list is removed. Delegates to the `free`
- * field of @p list to ensure all contents of the node are freed. If this field
+ * If it exists, the last element in @p list is removed. This function will also
+ * call the standard implementation of `free()` on the data within the the node.
  *
  * @param list The list to remove from.
  */
@@ -326,7 +314,7 @@ void removeTail(LinkedList *list);
  * @param index The index to remove (starting from 0).
  * @return Positive integer for successful removal, zero otherwise.
  */
-int removeIndex(LinkedList *list, long index);
+/*int removeIndex(LinkedList *list, long index);*/
 
 
 /**
@@ -342,8 +330,8 @@ int removeIndex(LinkedList *list, long index);
  * @param  compare The overriding comparison function to use.
  * @return Positive integer for successful removal, zero otherwise.
  */
-int removeElement(LinkedList *list, LinkedListData value,
-        DifferenceFunc diff);
+/*int removeElement(LinkedList *list, LinkedListData value,
+        DifferenceFunc diff);*/
 
 
 /***** FINDING & SEARCHING FUNCTIONS *****/
@@ -354,8 +342,8 @@ int removeElement(LinkedList *list, LinkedListData value,
 /**
  * @brief Calculate the length of a list.
  *
- * If it has been enabled this may merely return the length field of @p list.
- * Otherwise the list is traversed to calculate the length.
+ * Calculates the length of @p list.
+ * TODO: document list length limitation
  *
  * @param list The list to determine the length of.
  * @return The size of the supplied list.
@@ -379,26 +367,32 @@ unsigned long listLength(LinkedList *list);
  * @param diff Overriding comparison function to use.
  * @return A pointer to the found element, or `NULL` if not found.
  */
-LinkedListData findElement(LinkedList *list, LinkedListData needle,
-        DifferenceFunc diff);
+/*LinkedListData findElement(LinkedList *list, LinkedListData needle,
+        DifferenceFunc diff);*/
 
 
 /**
- * @brief Retrieves, but does not remove, the element at the start of a list.
+ * @brief Retrieves, but does not remove, the element at the top of a list.
+ *
+ * This is a convenience function provided so the user does not need to know the
+ * list implementation details.
  *
  * @param list The list to retrieve from.
  * @return A pointer to the first element, or `NULL` if empty.
  */
-LinkedListData peekTop(LinkedList *list);
+DataPointer peekTop(LinkedList *list);
 
 
 /**
  * @brief Retrieves, but does not remove, the element at the end of a list.
  *
+ * This is a convenience function provided so the user does not need to know the
+ * list implementation details.
+ *
  * @param list The list to retrieve from.
  * @return A pointer to the last element, or `NULL` if empty.
  */
-LinkedListData peekTail(LinkedList *list);
+DataPointer peekTail(LinkedList *list);
 
 
 /**
@@ -410,7 +404,7 @@ LinkedListData peekTail(LinkedList *list);
  * @param list The list to retrieve from.
  * @return A pointer to the element, or `NULL` if out of bounds.
  */
-LinkedListData peekIndex(LinkedList *list, long index);
+/*LinkedListData peekIndex(LinkedList *list, long index);*/
 
 
  #endif /* end of include guard: LINKEDLIST_H */
