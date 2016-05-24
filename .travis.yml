@@ -1,6 +1,12 @@
 language: c
-addons:
-  apt:
-    - libcmocka-dev
+sudo: required
+dist: trusty
+# addons:
+#     apt:
+#         packages:
+#         - libcmocka-dev
+before_install:
+- sudo apt-get -qq update
+- sudo apt-get install -y libcmocka-dev
 install: make
 script: make test
