@@ -3,7 +3,7 @@
 # Makefile to build unit tests for linked list library.
 
 CC = gcc
-CFLAGS = -Wall -pedantic -g
+CFLAGS = -Wall -pedantic -g -std=c99
 CMOCKA = `pkg-config --libs --cflags cmocka`
 BIN = unittests
 
