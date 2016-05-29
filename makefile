@@ -31,6 +31,10 @@ $(TEST_BIN): $(SOURCE) $(SOURCE:%.c=%.h) test/unittests.c
 test:
 	@cd test && make test
 
+# build documentation for hosting
+docs:
+	@echo "This still needs to be done."
+
 # clean everything
 clean:
 	@echo "Cleaning object files..."
@@ -39,4 +43,4 @@ clean:
 	@rm -f $(TEST_BIN)
 	@echo "Done."
 
-.PHONY: all build buildtests test clean
+.PHONY: all build buildtests test docs clean
