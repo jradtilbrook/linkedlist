@@ -27,6 +27,56 @@ static void test_createList(void **state)
 }
 
 
+static void *reducer(DataPointer data, void *carry)
+{
+    // if there is a carry value, add the current
+    if (carry)
+    {
+        *(int*)carry += *(int*)data;
+    }
+    return carry;
+}
+
+static void test_reduceList_empty(void **state)
+{
+    LinkedList *list = createList();
+
+    // when we call the reduceList function on an empty list
+    int a = 42;
+    int *actual = reduceList(list, &reducer, &a);
+
+    // we expect the seed to be returned
+    assert_int_equal(42, *actual);
+
+    destroyList(list);
+}
+
+
+static void test_reduceList_simple(void **state)
+{
+    LinkedList *list = createList();
+
+    // add in a some test data to the list
+    for (int i = 0; i < 10; i++)
+    {
+        int *a = malloc(sizeof(int));
+        *a = i;
+        insertTail(list, a);
+    }
+
+    // when we call the reduceList function
+    int *actual = malloc(sizeof(int));
+    *actual = 0;
+    actual = reduceList(list, &reducer, actual);
+
+    // we expect the correct value
+    assert_int_equal(45, *actual);
+
+    free(actual);
+    destroyList(list);
+}
+
+
 static void test_destroyList_empty(void **state)
 {
     LinkedList *list = createList();
@@ -179,6 +229,8 @@ int main()
     /* array of unit tests to run */
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_createList),
+        cmocka_unit_test(test_reduceList_empty),
+        cmocka_unit_test(test_reduceList_simple),
         cmocka_unit_test(test_destroyList_empty),
         cmocka_unit_test(test_destroyList),
         cmocka_unit_test(test_listLength),

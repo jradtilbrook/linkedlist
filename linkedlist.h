@@ -121,6 +121,18 @@ typedef void* DataPointer;
 
 
 /**
+ * @brief A function pointer type used to reduce a linked list to a single
+ *        value.
+ *
+ * The user may define a function of this type that will be used to perform
+ * a reduce operation on the linked list. The first argument is the current
+ * item in the list being evaluated, and the second is the carry over from
+ * previous invocations.
+ */
+typedef void *(* Reducer)(DataPointer, void *);
+
+
+/**
  * A `struct` representing a node within a linked list.
  */
 typedef struct ListNode {
@@ -180,6 +192,22 @@ LinkedList* createList();
  *         the length.
  */
 /*ArrayList* list2Array(LinkedList *list);*/
+
+
+/**
+ * Perform a reduce operation on the list to produce a single value and return it.
+ *
+ * This function iterates over the list calling the provided callback passing each node in turn along with the value
+ * returned from the previous invocations. The value of seed is passed on the first invocation.
+ *
+ * @param list A list to reduce to a single value.
+ * @param callback A function called for each node in the list which takes a pointer to the current value of previous
+ *                  reductions and the next node. This method should perform whatever is necessary to convert the
+ *                  current node to a single value and add it to the current value.
+ * @param seed An initial value to pass to the callback for the first invocation.
+ * @return A pointer to the result of reducing the list.
+ */
+void *reduceList(LinkedList *list, Reducer callback, void *seed);
 
 
 /**

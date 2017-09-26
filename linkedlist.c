@@ -22,6 +22,25 @@ LinkedList* createList()
 }
 
 
+void *reduceList(LinkedList *list, Reducer callback, void *seed)
+{
+    /* if the list is not empty */
+    if (list && list->head)
+    {
+        ListNode *current = list->head;
+
+        /* iterate over the list calling the reducer function */
+        do
+        {
+            seed = callback(current->data, seed);
+            current = current->next;
+        } while (current);
+    }
+
+    return seed;
+}
+
+
 int insertTop(LinkedList *list, DataPointer data)
 {
     ListNode *top;
